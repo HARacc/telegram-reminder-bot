@@ -1,4 +1,3 @@
-# === bot.py (бот з Telegram) ===
 import json
 import os
 import asyncio
@@ -10,16 +9,15 @@ from dotenv import load_dotenv
 import nest_asyncio
 import requests
 
-# --- Логи ---
 logging.basicConfig(level=logging.INFO)
 
-# --- Завантаження змінних ---
+# Завантаження змінних
 load_dotenv()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 SERVER_URL = os.getenv("SERVER_URL") 
 REMINDER_FILE = "reminders.json"
 
-# --- Нагадування ---
+# Нагадування
 def load_reminders():
     if os.path.exists(REMINDER_FILE):
         with open(REMINDER_FILE, "r") as f:
@@ -30,7 +28,6 @@ def save_reminders(reminders):
     with open(REMINDER_FILE, "w") as f:
         json.dump(reminders, f, indent=2)
 
-# --- /remind ---
 async def remind_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         time_str = context.args[0]
@@ -49,7 +46,6 @@ async def remind_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         await update.message.reply_text("❌ Формат: /remind 14:00 текст")
 
-# --- /remind_daily ---
 async def remind_daily_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         time_str = context.args[0]
@@ -67,14 +63,12 @@ async def remind_daily_command(update: Update, context: ContextTypes.DEFAULT_TYP
     except:
         await update.message.reply_text("❌ Формат: /remind_daily 08:00 текст")
 
-# --- /remind_remove_all ---
 async def remind_remove_all(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reminders = load_reminders()
     reminders = [r for r in reminders if not r.get("daily", False)]
     save_reminders(reminders)
     await update.message.reply_text("🗑️ Усі щоденні нагадування видалено.")
 
-# --- /threshold ---
 async def threshold_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         if not context.args:
@@ -89,7 +83,7 @@ async def threshold_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         await update.message.reply_text(f"❌ Помилка: {e}")
 
-# --- Фоновий процес ---
+# Фоновий процес
 async def reminder_loop(app):
     while True:
         now = (datetime.now() + timedelta(hours=3)).strftime("%H:%M")
@@ -108,7 +102,6 @@ async def reminder_loop(app):
             save_reminders(reminders)
         await asyncio.sleep(60)
 
-# --- main ---
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("remind", remind_command))
@@ -120,7 +113,6 @@ async def main():
     asyncio.create_task(reminder_loop(app))
     await app.updater.start_polling()
 
-# --- Запуск ---
 nest_asyncio.apply()
 loop = asyncio.get_event_loop()
 loop.create_task(main())
